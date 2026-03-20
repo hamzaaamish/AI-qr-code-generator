@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR·AI — Message</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f5f0;
+      --surface: #ffffff;
+      --surface2: #f0ede8;
+      --border: #e4dfd8;
+      --accent: #5a6e4e;
+      --accent2: #8fa67f;
+      --text: #2a2520;
+      --muted: #9a9088;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 15px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 700px 500px at 10% 10%, rgba(143,166,127,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 600px 400px at 90% 90%, rgba(90,110,78,0.08) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 48px 20px 64px;
+    }
+
+    /* ── LOGO ── */
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--accent);
+      letter-spacing: .05em;
+      margin-bottom: 48px;
+      opacity: 0.7;
+      animation: fadeDown .5s ease both;
+    }
+
+    /* ── CARD ── */
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 44px 40px;
+      box-shadow: 0 4px 32px rgba(42,37,32,.07), 0 1px 6px rgba(42,37,32,.04);
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp .6s .1s ease both;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(90,110,78,.4), rgba(143,166,127,.5), transparent);
+    }
+
+    /* ── TYPE BADGE ── */
+    .type-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--accent); background: rgba(90,110,78,.08);
+      border: 1px solid rgba(90,110,78,.2);
+      padding: 4px 12px; border-radius: 20px;
+      margin-bottom: 22px;
+    }
+    .badge-dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; }
+
+    /* ── CONTENT DISPLAY ── */
+    .content-label {
+      font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px;
+    }
+
+    /* URL type */
+    .display-url {
+      display: none;
+    }
+    .url-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 14px;
+      color: var(--accent); text-decoration: none;
+      border-bottom: 1px solid rgba(90,110,78,.3);
+      padding-bottom: 2px;
+      word-break: break-all;
+      transition: color .2s;
+    }
+    .url-link:hover { color: #3d4f35; border-bottom-color: #3d4f35; }
+
+    /* Text / Message type */
+    .display-text {
+      display: none;
+    }
+    .message-box {
+      font-family: var(--font-serif);
+      font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+      line-height: 1.55;
+      color: var(--text);
+      font-style: italic;
+      padding: 20px 0 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* WiFi type */
+    .display-wifi {
+      display: none;
+    }
+    .wifi-grid {
+      display: flex; flex-direction: column; gap: 12px;
+      margin-top: 4px;
+    }
+    .wifi-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .wifi-key { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .wifi-val { font-size: 14px; color: var(--text); font-weight: 500; }
+    .wifi-icon { font-size: 2.5rem; text-align: center; margin-bottom: 16px; }
+
+    /* Contact / vCard type */
+    .display-contact {
+      display: none;
+    }
+    .contact-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-family: var(--font-serif); font-size: 1.4rem;
+      margin-bottom: 16px;
+    }
+    .contact-name {
+      font-family: var(--font-serif); font-size: 1.8rem;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .contact-title { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+    .contact-details { display: flex; flex-direction: column; gap: 8px; }
+    .contact-row {
+      display: flex; gap: 10px; align-items: center;
+      font-size: 13px; color: var(--text);
+    }
+    .contact-icon { color: var(--accent); width: 16px; flex-shrink: 0; }
+
+    /* Generic / raw type */
+    .display-raw {
+      display: none;
+    }
+    .raw-box {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 20px;
+      font-size: 14px; line-height: 1.7; color: var(--text);
+      word-break: break-all; white-space: pre-wrap;
+    }
+
+    /* ── ACTIONS ── */
+    .actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-top: 28px;
+    }
+    .btn {
+      padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border);
+      background: transparent; color: var(--text);
+      font-family: var(--font-mono); font-size: 12px;
+      cursor: pointer; transition: all .2s;
+      display: inline-flex; align-items: center; gap: 7px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(90,110,78,.05); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; color: white;
+      box-shadow: 0 3px 12px rgba(90,110,78,.25);
+    }
+    .btn-primary:hover { opacity: .9; color: white; background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+
+    /* ── META ── */
+    .meta {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 8px;
+    }
+    .meta-text { font-size: 11px; color: var(--muted); }
+    .meta-ai { font-size: 11px; color: var(--accent); display: flex; align-items: center; gap: 5px; }
+
+    /* ── NOT FOUND ── */
+    .not-found {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .not-found h2 { font-family: var(--font-serif); font-size: 2rem; margin-bottom: 12px; }
+    .not-found p { color: var(--muted); font-size: 13px; }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 36px;
+      font-size: 11px; color: var(--muted);
+      letter-spacing: .06em;
+      animation: fadeUp .6s .25s ease both;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(14px);  } to { opacity:1; transform:translateY(0); } }
+    @keyframes pop      { 0%{transform:scale(.85);opacity:0} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
+
+    @media (max-width: 480px) {
+      .card { padding: 30px 22px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="logo">QR · AI</div>
+
+  <div class="card" id="mainCard">
+
+    <!-- URL -->
+    <div class="display-url" id="displayUrl">
+      <div class="type-badge"><div class="badge-dot"></div> Link</div>
+      <div class="content-label">This QR takes you to</div>
+      <br>
+      <a class="url-link" id="urlLink" href="#" target="_blank" rel="noopener">
+        <span>↗</span>
+        <span id="urlText"></span>
+      </a>
+      <div class="actions">
+        <a class="btn btn-primary" id="openUrlBtn" href="#" target="_blank">↗ Open Link</a>
+        <button class="btn" onclick="copyRaw()">⎘ Copy URL</button>
+      </div>
+    </div>
+
+    <!-- Text / Message -->
+    <div class="display-text" id="displayText">
+      <div class="type-badge"><div class="badge-dot"></div> Message</div>
+      <div class="message-box" id="messageText"></div>
+      <div class="actions">
+        <button class="btn" onclick="copyRaw()">⎘ Copy Text</button>
+      </div>
+    </div>
+
+    <!-- WiFi -->
+    <div class="display-wifi" id="displayWifi">
+      <div class="type-badge"><div class="badge-dot"></div> Wi-Fi Network</div>
+      <div class="wifi-icon">📶</div>
+      <div class="wifi-grid" id="wifiGrid"></div>
+      <div class="actions">
+        <button class="btn" onclick="copyRaw()">⎘ Copy Config</button>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="display-contact" id="displayContact">
+      <div class="type-badge"><div class="badge-dot"></div> Contact Card</div>
+      <div class="contact-avatar" id="contactAvatar"></div>
+      <div class="contact-name" id="contactName"></div>
+      <div class="contact-title" id="contactTitle"></div>
+      <div class="contact-details" id="contactDetails"></div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="downloadVCard()">↓ Save Contact</button>
+        <button class="btn" onclick="copyRaw()">⎘ Copy vCard</button>
+      </div>
+    </div>
+
+    <!-- Raw / Generic -->
+    <div class="display-raw" id="displayRaw">
+      <div class="type-badge"><div class="badge-dot"></div> Content</div>
+      <div class="content-label">Encoded message</div>
+      <div class="raw-box" id="rawBox"></div>
+      <div class="actions">
+        <button class="btn" onclick="copyRaw()">⎘ Copy</button>
+      </div>
+    </div>
+
+    <!-- Not Found -->
+    <div class="not-found" id="notFound">
+      <h2>Nothing here</h2>
+      <p>This QR code doesn't contain a message.<br>Try scanning again or generate a new one.</p>
+    </div>
+
+    <div class="meta" id="metaRow">
+      <span class="meta-text" id="metaTime"></span>
+      <span class="meta-ai">✦ AI Enhanced by Claude</span>
+    </div>
+
+  </div>
+
+  <footer>
+    Generated with <a href="index.html">QR·AI</a> · Powered by Claude
+  </footer>
+
+</div>
+
+<script>
+  // ── Read URL params ──
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('msg') || '';
+  const origInput = params.get('orig') || '';
+  const ts = params.get('ts') || '';
+
+  // ── Detect content type ──
+  function detectType(content) {
+    if (!content) return 'none';
+    if (/^https?:\/\//i.test(content)) return 'url';
+    if (/^WIFI:/i.test(content)) return 'wifi';
+    if (/^BEGIN:VCARD/i.test(content)) return 'contact';
+    return 'text';
+  }
+
+  // ── Parse WiFi ──
+  function parseWifi(str) {
+    const get = (key) => {
+      const m = str.match(new RegExp(key + ':([^;]+)'));
+      return m ? m[1] : '';
+    };
+    return {
+      ssid: get('S'),
+      password: get('P'),
+      type: get('T') || 'WPA',
+      hidden: /H:true/i.test(str)
+    };
+  }
+
+  // ── Parse vCard ──
+  function parseVCard(str) {
+    const lines = str.split(/\r?\n/);
+    const get = (prefix) => {
+      const l = lines.find(l => l.toUpperCase().startsWith(prefix.toUpperCase()));
+      return l ? l.split(':').slice(1).join(':').trim() : '';
+    };
+    const fn = get('FN');
+    const nameParts = get('N').split(';');
+    const name = fn || (nameParts[1] + ' ' + nameParts[0]).trim();
+    return {
+      name,
+      title: get('TITLE'),
+      org: get('ORG'),
+      email: get('EMAIL'),
+      tel: get('TEL'),
+      url: get('URL'),
+      note: get('NOTE')
+    };
+  }
+
+  // ── Format timestamp ──
+  function fmtTs(ts) {
+    if (!ts) return '';
+    const d = new Date(parseInt(ts));
+    return 'Generated ' + d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  // ── Render ──
+  const type = detectType(raw);
+
+  document.getElementById('metaTime').textContent = fmtTs(ts) + (origInput ? ` · From: "${origInput}"` : '');
+
+  if (type === 'none') {
+    document.getElementById('notFound').style.display = 'block';
+    document.getElementById('metaRow').style.display = 'none';
+
+  } else if (type === 'url') {
+    const d = document.getElementById('displayUrl');
+    d.style.display = 'block';
+    document.getElementById('urlText').textContent = raw;
+    document.getElementById('urlLink').href = raw;
+    document.getElementById('openUrlBtn').href = raw;
+
+  } else if (type === 'wifi') {
+    const d = document.getElementById('displayWifi');
+    d.style.display = 'block';
+    const w = parseWifi(raw);
+    const grid = document.getElementById('wifiGrid');
+    const rows = [
+      ['Network Name', w.ssid],
+      ['Password', w.password],
+      ['Security', w.type],
+      w.hidden ? ['Hidden', 'Yes'] : null
+    ].filter(Boolean);
+    rows.forEach(([k, v]) => {
+      const el = document.createElement('div');
+      el.className = 'wifi-row';
+      el.innerHTML = `<span class="wifi-key">${k}</span><span class="wifi-val">${v}</span>`;
+      grid.appendChild(el);
+    });
+
+  } else if (type === 'contact') {
+    const d = document.getElementById('displayContact');
+    d.style.display = 'block';
+    const c = parseVCard(raw);
+    const initials = (c.name || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('contactAvatar').textContent = initials;
+    document.getElementById('contactName').textContent = c.name || 'Contact';
+    document.getElementById('contactTitle').textContent = [c.title, c.org].filter(Boolean).join(' · ');
+    const details = document.getElementById('contactDetails');
+    const detailRows = [
+      c.email ? ['✉', c.email] : null,
+      c.tel   ? ['📞', c.tel]   : null,
+      c.url   ? ['🔗', c.url]   : null,
+      c.note  ? ['📝', c.note]  : null,
+    ].filter(Boolean);
+    detailRows.forEach(([icon, val]) => {
+      const el = document.createElement('div');
+      el.className = 'contact-row';
+      el.innerHTML = `<span class="contact-icon">${icon}</span><span>${val}</span>`;
+      details.appendChild(el);
+    });
+
+  } else {
+    // text
+    const d = document.getElementById('displayText');
+    d.style.display = 'block';
+    document.getElementById('messageText').textContent = raw;
+  }
+
+  // ── Actions ──
+  function copyRaw() {
+    navigator.clipboard.writeText(raw).then(() => {
+      const btns = document.querySelectorAll('.btn');
+      btns.forEach(b => { if (b.textContent.includes('Copy')) { const o = b.textContent; b.textContent = '✓ Copied!'; setTimeout(() => b.textContent = o, 1800); } });
+    });
+  }
+
+  function downloadVCard() {
+    const blob = new Blob([raw], { type: 'text/vcard' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'contact.vcf';
+    a.click();
+  }
+</script>
+</body>
+</html>
